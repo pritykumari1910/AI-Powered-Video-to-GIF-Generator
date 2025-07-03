@@ -8,25 +8,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/gif.js@0.2.0/dist/gif.js"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+        body { font-family: 'Inter', sans-serif; }
         .loader {
             border-top-color: #3498db;
             -webkit-animation: spin 1s linear infinite;
             animation: spin 1s linear infinite;
         }
-        @-webkit-keyframes spin {
-            0% { -webkit-transform: rotate(0deg); }
-            100% { -webkit-transform: rotate(360deg); }
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @-webkit-keyframes spin { 0% { -webkit-transform: rotate(0deg); } 100% { -webkit-transform: rotate(360deg); } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen py-12">
 
     <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-2xl mx-4">
         <h1 class="text-3xl font-bold mb-2 text-center text-cyan-400">AI-Powered Video to GIF Generator</h1>
@@ -39,8 +31,8 @@
             </div>
 
             <div>
-                <label for="youtube-url" class="block text-sm font-medium text-gray-300 mb-2">YouTube URL (Optional)</label>
-                <input type="url" id="youtube-url" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-cyan-500 focus:outline-none" placeholder="https://www.youtube.com/watch?v=...">
+                <label for="youtube-url" class="block text-sm font-medium text-gray-300 mb-2">YouTube URL (Backend Required)</label>
+                <input type="url" id="youtube-url" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-cyan-500 focus:outline-none" placeholder="This feature requires a server to be built.">
             </div>
 
             <div>
@@ -48,9 +40,7 @@
                 <div class="flex items-center justify-center w-full">
                     <label for="video-upload" class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-600 border-dashed rounded-lg cursor-pointer bg-gray-700 hover:bg-gray-600">
                         <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg class="w-10 h-10 mb-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                            </svg>
+                            <svg class="w-10 h-10 mb-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/></svg>
                             <p class="mb-2 text-sm text-gray-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
                             <p id="file-name" class="text-xs text-gray-400">MP4 video file</p>
                         </div>
@@ -59,231 +49,254 @@
                 </div>
             </div>
 
-            <button id="generate-btn" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 disabled:bg-gray-500 disabled:cursor-not-allowed">
-                Generate GIFs
-            </button>
+            <button id="generate-btn" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 disabled:bg-gray-500 disabled:cursor-not-allowed">Generate GIFs</button>
         </div>
 
         <div id="loading" class="hidden text-center my-6">
             <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24 mx-auto"></div>
-            <p class="mt-4 text-lg">Analyzing video and generating GIFs... This may take a moment.</p>
+            <p id="loading-text" class="mt-4 text-lg">Analyzing video and generating GIFs...</p>
         </div>
         
         <div id="message-box" class="hidden text-center my-4 p-4 bg-red-800 border border-red-600 rounded-lg">
             <p id="message-text"></p>
         </div>
 
-        <div id="gif-output" class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Generated GIFs will be appended here -->
-        </div>
+        <div id="gif-output" class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
 
-    <script>
-        const promptInput = document.getElementById('prompt');
-        const youtubeUrlInput = document.getElementById('youtube-url');
-        const videoUpload = document.getElementById('video-upload');
-        const generateBtn = document.getElementById('generate-btn');
-        const gifOutput = document.getElementById('gif-output');
-        const loading = document.getElementById('loading');
-        const fileNameDisplay = document.getElementById('file-name');
-        const messageBox = document.getElementById('message-box');
-        const messageText = document.getElementById('message-text');
+<script>
+    const promptInput = document.getElementById('prompt');
+    const youtubeUrlInput = document.getElementById('youtube-url');
+    const videoUpload = document.getElementById('video-upload');
+    const generateBtn = document.getElementById('generate-btn');
+    const gifOutput = document.getElementById('gif-output');
+    const loading = document.getElementById('loading');
+    const loadingText = document.getElementById('loading-text');
+    const fileNameDisplay = document.getElementById('file-name');
+    const messageBox = document.getElementById('message-box');
+    const messageText = document.getElementById('message-text');
 
-        let videoFile = null;
+    let videoFile = null;
 
-        videoUpload.addEventListener('change', (event) => {
-            videoFile = event.target.files[0];
-            if (videoFile) {
-                fileNameDisplay.textContent = videoFile.name;
-            } else {
-                fileNameDisplay.textContent = 'MP4 video file';
-            }
-        });
+    videoUpload.addEventListener('change', (event) => {
+        videoFile = event.target.files[0];
+        if (videoFile) {
+            fileNameDisplay.textContent = videoFile.name;
+            youtubeUrlInput.value = '';
+        } else {
+            fileNameDisplay.textContent = 'MP4 video file';
+        }
+    });
+    
+    youtubeUrlInput.addEventListener('input', () => {
+        if (youtubeUrlInput.value) {
+            videoFile = null;
+            videoUpload.value = '';
+            fileNameDisplay.textContent = 'MP4 video file';
+        }
+    });
 
-        generateBtn.addEventListener('click', () => {
-            const prompt = promptInput.value.trim();
-            const youtubeUrl = youtubeUrlInput.value.trim();
+    generateBtn.addEventListener('click', () => {
+        const prompt = promptInput.value.trim();
+        const youtubeUrl = youtubeUrlInput.value.trim();
 
-            if (!prompt) {
-                showMessage("Please enter a GIF theme prompt.");
-                return;
-            }
-            if (!videoFile && !youtubeUrl) {
-                showMessage("Please upload a video file or provide a YouTube URL.");
-                return;
-            }
-             if (videoFile && youtubeUrl) {
-                showMessage("Please either upload a video OR provide a YouTube URL, not both.");
-                return;
-            }
-
-            if (youtubeUrl) {
-                showMessage("YouTube URL processing is a future feature. Please upload a video file for now.");
-                return;
-            }
-
-            if (videoFile) {
-                processVideo(videoFile, prompt);
-            }
-        });
+        if (!prompt) {
+            showMessage("Please enter a GIF theme prompt.");
+            return;
+        }
+        if (!videoFile && !youtubeUrl) {
+            showMessage("Please upload a video file or provide a YouTube URL.");
+            return;
+        }
         
-        function showMessage(message) {
-            messageText.textContent = message;
-            messageBox.classList.remove('hidden');
-            setTimeout(() => {
-                messageBox.classList.add('hidden');
-            }, 3000);
+        if (youtubeUrl) {
+            handleYouTubeUrl(youtubeUrl, prompt);
+        } else if (videoFile) {
+            processVideoFile(videoFile, prompt);
+        }
+    });
+    
+    function showMessage(message) {
+        messageText.textContent = message;
+        messageBox.classList.remove('hidden');
+        setTimeout(() => messageBox.classList.add('hidden'), 4000);
+    }
+
+    function startLoading(text) {
+        loadingText.textContent = text;
+        loading.classList.remove('hidden');
+        gifOutput.innerHTML = '';
+        generateBtn.disabled = true;
+    }
+
+    function stopLoading() {
+        loading.classList.add('hidden');
+        generateBtn.disabled = false;
+    }
+    
+    function handleYouTubeUrl(url, prompt) {
+        showMessage("YouTube processing requires a backend server to download the video due to browser security restrictions. This feature is not implemented in this prototype.");
+    }
+    
+    // =================================================================
+    // NEW: SIMULATED AI LOGIC
+    // =================================================================
+    async function getAIClips(prompt, duration) {
+        // In a REAL application, this function would:
+        // 1. Send the video file to your backend server.
+        // 2. The backend would use an AI (like OpenAI Whisper) to get a full transcript with timestamps.
+        // 3. The backend would use a Language Model (like Gemini) to analyze the transcript and prompt,
+        //    identifying the 2-3 best clips that match the theme.
+        // 4. The backend would return the selected clip data (startTime, endTime, caption).
+        
+        console.log("Simulating AI analysis for prompt:", prompt);
+        
+        // **START OF SIMULATION**
+        // We'll pretend this is the transcript returned from our AI service.
+        const simulatedTranscript = [
+            { text: "To be successful, the first thing to do is fall in love with your work.", start: duration * 0.1, tags: ['motivational'] },
+            { text: "This is a pretty funny moment, right?", start: duration * 0.3, tags: ['funny'] },
+            { text: "I believe that every person is born with talent.", start: duration * 0.5, tags: ['motivational', 'inspirational'] },
+            { text: "Wow, that was a huge surprise!", start: duration * 0.7, tags: ['funny', 'surprise'] },
+            { text: "The journey of a thousand miles begins with a single step.", start: duration * 0.85, tags: ['motivational'] }
+        ];
+
+        // Now, we'll simulate the AI picking the best clips based on the prompt.
+        const promptKeywords = prompt.toLowerCase().split(' ');
+        const matchingClips = simulatedTranscript.filter(clip => 
+            promptKeywords.some(keyword => clip.tags.includes(keyword) || clip.text.toLowerCase().includes(keyword))
+        );
+
+        if (matchingClips.length === 0) {
+            // If no matches, just pick the first and last clips as a fallback.
+            return [
+                { startTime: duration * 0.15, caption: "No match found, clip 1" },
+                { startTime: duration * 0.75, caption: "No match found, clip 2" }
+            ];
         }
 
-        async function processVideo(file, prompt) {
-            loading.classList.remove('hidden');
-            gifOutput.innerHTML = '';
-            generateBtn.disabled = true;
+        // Return the best matches found.
+        return matchingClips.map(clip => ({
+            startTime: clip.start,
+            caption: clip.text
+        }));
+        // **END OF SIMULATION**
+    }
 
-            // In a real application, you would send the video and prompt to a backend
-            // for transcription and analysis. Here, we simulate this process.
-            // We'll "identify" key moments by simply creating 3 clips from the video.
-            const video = document.createElement('video');
-            video.src = URL.createObjectURL(file);
+    async function processVideoFile(file, prompt) {
+        startLoading("Analyzing video with simulated AI...");
+        const video = document.createElement('video');
+        video.src = URL.createObjectURL(file);
 
-            video.onloadedmetadata = async () => {
-                const duration = video.duration;
-                const clipCount = 3;
-                const clipDuration = 2.5; // seconds
+        video.onloadedmetadata = async () => {
+            const duration = video.duration;
+            
+            // NEW: Get clips from our simulated AI function
+            const clipsToMake = await getAIClips(prompt, duration);
 
-                // Define clip start times. In a real app, these would come from AI analysis.
-                const startTimes = [
-                    duration * 0.15,
-                    duration * 0.45,
-                    duration * 0.75
-                ].filter(t => t + clipDuration < duration);
-                
-                if(startTimes.length === 0 && duration > 0){
-                    startTimes.push(0); // at least one clip if video is long enough
-                }
-
-                if(startTimes.length === 0){
-                    showMessage("Video is too short to create clips.");
-                    loading.classList.add('hidden');
-                    generateBtn.disabled = false;
-                    return;
-                }
-
-                for (let i = 0; i < startTimes.length; i++) {
-                    const startTime = startTimes[i];
-                    try {
-                        const gifUrl = await createGif(video, startTime, clipDuration, prompt);
-                        displayGif(gifUrl, i);
-                    } catch (error) {
-                        console.error('Error creating GIF:', error);
-                        showMessage(`Failed to create GIF #${i + 1}. Please try another video.`);
-                    }
-                }
-
-                loading.classList.add('hidden');
-                generateBtn.disabled = false;
-                URL.revokeObjectURL(video.src); // Clean up
-            };
-
-            video.onerror = () => {
-                showMessage("Error loading video. Please check the file and try again.");
-                loading.classList.add('hidden');
-                generateBtn.disabled = false;
+            if (!clipsToMake || clipsToMake.length === 0) {
+                showMessage("Simulated AI could not find any relevant clips.");
+                stopLoading();
+                return;
             }
-        }
 
-        async function createGif(video, startTime, clipDuration, captionText) {
-            // Fetch the worker script as text
-            const workerResponse = await fetch('https://unpkg.com/gif.js@0.2.0/dist/gif.worker.js');
-            const workerText = await workerResponse.text();
-            // Create a Blob from the text
-            const workerBlob = new Blob([workerText], { type: 'application/javascript' });
-            // Create an object URL for the Blob
-            const workerUrl = URL.createObjectURL(workerBlob);
-
-            return new Promise((resolve, reject) => {
-                const gif = new GIF({
-                    workers: 2,
-                    quality: 10,
-                    workerScript: workerUrl, // Use the local blob URL
-                    width: video.videoWidth,
-                    height: video.videoHeight,
-                });
-
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const ctx = canvas.getContext('2d');
-
-                const frameRate = 10; // 10 frames per second
-                const interval = 1 / frameRate;
-                let currentTime = startTime;
-                const endTime = startTime + clipDuration;
-
-                video.currentTime = currentTime;
-
-                video.onseeked = function onSeeked() {
-                    if (currentTime < endTime) {
-                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        
-                        // Add caption
-                        ctx.font = 'bold 36px Arial';
-                        ctx.fillStyle = 'white';
-                        ctx.strokeStyle = 'black';
-                        ctx.lineWidth = 2;
-                        ctx.textAlign = 'center';
-                        const textY = canvas.height - 30;
-                        ctx.strokeText(captionText, canvas.width / 2, textY);
-                        ctx.fillText(captionText, canvas.width / 2, textY);
-
-                        gif.addFrame(canvas, { copy: true, delay: interval * 1000 });
-                        
-                        currentTime += interval;
-                        if (currentTime < endTime) {
-                            video.currentTime = currentTime;
-                        } else {
-                            video.onseeked = null; // remove listener
-                            finishGif();
-                        }
-                    } else {
-                         video.onseeked = null; // remove listener
-                         finishGif();
-                    }
-                };
+            for (let i = 0; i < Math.min(clipsToMake.length, 3); i++) { // Generate max 3 GIFs
+                const clip = clipsToMake[i];
+                const clipDuration = 3.0; // seconds
                 
-                function finishGif() {
+                if (clip.startTime + clipDuration > duration) continue; // Skip clips that are too close to the end
+
+                try {
+                    const gifUrl = await createGif(video, clip.startTime, clipDuration, clip.caption);
+                    displayGif(gifUrl, i, clip.caption);
+                } catch (error) {
+                    console.error('Error creating GIF:', error);
+                    showMessage(`Failed to create GIF for clip: "${clip.caption}"`);
+                }
+            }
+            
+            stopLoading();
+            URL.revokeObjectURL(video.src);
+        };
+
+        video.onerror = () => {
+            showMessage("Error loading video. Please check the file and try again.");
+            stopLoading();
+        }
+    }
+
+    async function createGif(video, startTime, clipDuration, captionText) {
+        const workerResponse = await fetch('https://unpkg.com/gif.js@0.2.0/dist/gif.worker.js');
+        const workerText = await workerResponse.text();
+        const workerBlob = new Blob([workerText], { type: 'application/javascript' });
+        const workerUrl = URL.createObjectURL(workerBlob);
+
+        return new Promise((resolve) => {
+            const gif = new GIF({
+                workers: 2,
+                quality: 10,
+                workerScript: workerUrl,
+                width: video.videoWidth,
+                height: video.videoHeight,
+            });
+
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            const frameRate = 10;
+            const interval = 1 / frameRate;
+            let currentTime = startTime;
+            const endTime = startTime + clipDuration;
+
+            video.onseeked = function onSeeked() {
+                if (currentTime < endTime) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    // Add caption
+                    const fontSize = Math.max(24, Math.floor(canvas.width / 25));
+                    ctx.font = `bold ${fontSize}px 'Inter', sans-serif`;
+                    ctx.fillStyle = 'white';
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = Math.max(2, fontSize / 12);
+                    ctx.textAlign = 'center';
+                    const textY = canvas.height - (fontSize * 0.8);
+                    ctx.strokeText(captionText, canvas.width / 2, textY);
+                    ctx.fillText(captionText, canvas.width / 2, textY);
+
+                    gif.addFrame(canvas, { copy: true, delay: interval * 1000 });
+                    currentTime += interval;
+                    video.currentTime = Math.min(currentTime, video.duration);
+                } else {
+                    video.onseeked = null;
                     gif.on('finished', (blob) => {
-                        URL.revokeObjectURL(workerUrl); // Clean up the blob URL
+                        URL.revokeObjectURL(workerUrl);
                         resolve(URL.createObjectURL(blob));
                     });
                     gif.render();
                 }
-
-                // Initial seek
-                video.currentTime = startTime;
-
-            });
-        }
-
-        function displayGif(gifUrl, index) {
-            const gifContainer = document.createElement('div');
-            gifContainer.className = 'bg-gray-700 rounded-lg overflow-hidden shadow-lg';
-
-            const img = document.createElement('img');
-            img.src = gifUrl;
-            img.className = 'w-full h-auto';
+            };
             
-            const downloadLink = document.createElement('a');
-            downloadLink.href = gifUrl;
-            downloadLink.download = `generated_gif_${index + 1}.gif`;
-            downloadLink.className = 'block bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 text-center w-full transition duration-300';
-            downloadLink.textContent = 'Download GIF';
+            video.currentTime = startTime; // Initial seek
+        });
+    }
 
-            gifContainer.appendChild(img);
-            gifContainer.appendChild(downloadLink);
-            gifOutput.appendChild(gifContainer);
-        }
-
-    </script>
+    function displayGif(gifUrl, index, caption) {
+        const gifContainer = document.createElement('div');
+        gifContainer.className = 'bg-gray-700 rounded-lg overflow-hidden shadow-lg';
+        const img = document.createElement('img');
+        img.src = gifUrl;
+        img.alt = caption;
+        img.className = 'w-full h-auto';
+        const downloadLink = document.createElement('a');
+        downloadLink.href = gifUrl;
+        downloadLink.download = `ai_gif_${index + 1}.gif`;
+        downloadLink.className = 'block bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 text-center w-full transition duration-300';
+        downloadLink.textContent = 'Download GIF';
+        gifContainer.appendChild(img);
+        gifContainer.appendChild(downloadLink);
+        gifOutput.appendChild(gifContainer);
+    }
+</script>
 </body>
 </html>
